@@ -1,22 +1,16 @@
 SiK
 =====
-Firmware for SiLabs Si1000 - Si102x/3x ISM radios
+Firmware for SiLabs Si1000 - Si102x/3x/6x ISM radios
 
 [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ArduPilot/SiK?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-SiK is a collection of firmware and tools for radios based on the cheap, versatile SiLabs Si1000 SoC.
+SiK is a collection of firmware and tools for radios based on the cheap, versatile SiLabs Si1000 and Si1060 SoC.
 
 ## Branch Build Status
 [![Build Status](http://jenkins.hovo.id.au/buildStatus/icon?job=SiK)](http://jenkins.hovo.id.au/job/SiK/)
 
 ## Documentation
-For user documentation please see this site:
-
-http://ardupilot.org/copter/docs/common-sik-telemetry-radio.html
-
-Addition configuration guide can also be found here:
-
-http://copter.ardupilot.com/wiki/common-optional-hardware/common-telemetry-landingpage/common-3dr-radio-advanced-configuration-and-technical-information/
+For user documentation please see [ardupilot docs](http://ardupilot.org/copter/docs/common-sik-telemetry-radio.html)
 
 Currently, it supports the following boards:
 
@@ -25,6 +19,7 @@ Currently, it supports the following boards:
  - RFD900
  - RFD900u
  - RFD900p
+ - [MLAB ISM01A](https://www.mlab.cz/module/ISM01A)
 
 Adding support for additional boards should not be difficult.
 
@@ -33,7 +28,33 @@ Currently the firmware components include:
  - A bootloader with support for firmware upgrades over the serial interface.
  - Radio firmware with support for parsing AT commands, storing parameters and FHSS/TDM functionality
 
-See the user documentation above for a list of current firmware features
+### AT commands
+
+|Command| Variants| Function |
+|-------|--------|----------|
+|+++    | |Entering bootloader mode. Could be tested by sending AT, reply should be OK|
+|RT     | |remote AT command - send it to the tdm, system to send to the remote radio |
+|AT&F   | |  Restore default parameters |
+|AT&W| | Write parameters to the flash memory | 
+|AT&U | | Erase Flash signature forcing it into reprogram mode next reset |
+|AT&P | | TDM change phase |
+|AT&T | AT&T <br> AT&T=RSSI <br> AT&T=TDM |  disable all test modes <br> display RSSI stats <br> display TDM debug ) |
+|AT&E | AT&E?  <br> AT&E= | Print_encryption_key <br> Set encryption key | 
+|AT+ | AT+P= <br> AT+Cx=y <br> AT+Fx? <br> AT+L <br> AT+A |  set power level pwm to x immediately <br>  write calibration value <br> get calibration value <br> lock bootloader area if all calibrations written <br> RFD900 antenna diversity  |
+|ATI0| | banner_string |
+|ATI1| | version_string  |
+|ATI2| | BOARD_ID |
+|ATI3| | Board design frequency|
+|ATI4| | Board boot loader version|
+|ATI5| | Parameters |
+|ATI6| | TDM timing |
+|ATI7| | Show RSSI |
+|ATP |  ATPx=O <br> ATPx=I <br> ATPx=R <br> ATPx=Cx | Set pin to output, turn mirroring off pulling pin to ground    |
+|ATO | |    |
+|ATS | ATS? <br> ATS= | <br> Set a parameter  |
+|ATZ | | Generate a software reset    |
+
+Up to date AT command processig is located in [at.c](Firmware/radio/at.c) source code.
 
 ## What You Will Need
 
@@ -41,7 +62,7 @@ See the user documentation above for a list of current firmware features
  - At least two Si1000 - Si102x/3x - based radio devices (just one radio by itself is not very useful).
  - A [SiLabs USB debug adapter](http://www.silabs.com/products/mcu/Pages/USBDebug.aspx).
  - [SDCC](http://sdcc.sourceforge.net/), version 3.1.0 or later.
- - [EC2Tools](http://github.com/tridge/ec2)
+ - [EC2Tools](https://github.com/SamwelOpiyo/ec2)
  - [Mono](http://www.mono-project.com/) to build and run the GUI firmware updater.
  - Python to run the command-line firmware updater.
 
@@ -61,7 +82,7 @@ The SiLabs debug adapter can be used to flash both the bootloader and the firmwa
 
 The `Firmware/tools/ec2upload` script can be used to flash either a bootloader or firmware to an attached board with the SiLabs USB debug adapter.  Further details on the connections required to flash a specific board should be found in the `Firmware/include/board_*.h` header for the board in question.
 
-To use the updater application, open the `SiKUploader/SikUploader.sln` Mono solution file, build and run the application. Select the serial port connected to your radio and the appropriate firmware `.hex` file for the firmware you wish to uploader.  You will need to get the board into the bootloader; how you do this varies from board to board, but it will normally involve either holding down a button or pulling a pin high or low when the board is reset or powered on. 
+To use the updater application, open the `SiKUploader/SikUploader.sln` Mono solution file, build and run the application. Select the serial port connected to your radio and the appropriate firmware `.hex` file for the firmware you wish to uploader.  You will need to get the board into the bootloader; how you do this varies from board to board, but it will normally involve either holding down a button or pulling a pin high or low when the board is reset or powered on.
 
 For the supported boards:
 
